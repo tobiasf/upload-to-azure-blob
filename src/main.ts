@@ -1,18 +1,27 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import {
+  Inputs,
+  Output,
+  getBlobServiceClient,
+  getInputs,
+  uploadBlobs
+} from './upload'
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    // Retrieve user inputs to action
+    const inputs: Inputs = getInputs()
+    // Retrieve authenticated container client
+    const containerClient = getBlobServiceClient(
+      inputs.account
+    ).getContainerClient(inputs.destination)
+    // Upload files to container
+    const output: Output[] = await uploadBlobs(containerClient, inputs.source)
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+    core.setOutput('urls', JSON.stringify(output))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    core.setFailed(error.message)
   }
 }
 

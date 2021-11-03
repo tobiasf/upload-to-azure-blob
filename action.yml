@@ -27,5 +27,5 @@ outputs:
     description: |-
       URL(s) to the uploaded blob(s), if successful
 runs:
-  using: 'node14'
+  using: 'node12'
   main: 'dist/index.js'
